@@ -1,0 +1,15 @@
+﻿using System;
+using System.IO;
+
+public class Program {
+	private static int ncount = 0;
+
+	public static void Main() {
+		__methodCall__
+		__assertion__
+		__codeCoverage__
+		Console.ReadKey();
+	}
+
+	__methodPlacement__
+}

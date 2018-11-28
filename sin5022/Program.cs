@@ -1,0 +1,119 @@
+﻿using Microsoft.CSharp;
+using System;
+using System.CodeDom.Compiler;
+using System.Configuration;
+using System.IO;
+using System.Text.RegularExpressions;
+
+namespace sin5022
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var resultPath = ConfigurationManager.AppSettings["path"];
+
+            var csc = new CSharpCodeProvider();
+            var parameters = new CompilerParameters(new[] { "mscorlib.dll", "System.Core.dll" }, resultPath, true)
+            {
+                GenerateExecutable = true
+            };
+
+            string sourceCode = File.ReadAllText(ConfigurationManager.AppSettings["sourcecode"]);
+
+            string codeWithMethodInPlace = PromoteMethodPlacement(sourceCode);
+            string codeWithMethodCallInPlace = PromoteMethodCall(codeWithMethodInPlace);
+            string codeWithAssertionInPlace = PromoteAssertion(codeWithMethodCallInPlace);
+            string codeToBeCompiled = PromoteCodeCoverage(codeWithAssertionInPlace);
+
+            CompilerResults cr = csc.CompileAssemblyFromSource(parameters, codeToBeCompiled);
+
+            if (cr.Errors.Count > 0)
+            {
+                Console.WriteLine("Errors building {0} into {1}",
+                    codeToBeCompiled, cr.PathToAssembly);
+                foreach (CompilerError ce in cr.Errors)
+                {
+                    Console.WriteLine("  {0}", ce.ToString());
+                    Console.WriteLine();
+                }
+            }
+            else
+            {
+                Console.WriteLine("Source {0} built into {1} successfully.",
+                    codeToBeCompiled, cr.PathToAssembly);
+            }
+
+            Console.ReadKey();
+        }
+
+        private static string PromoteMethodPlacement(string sourceCode)
+        {
+            var methodName = ConfigurationManager.AppSettings["methodname"];
+            var matchMethodInSource = Regex.Match(sourceCode, @"(static)(\s)(int|string|double|object)(\s)(" + methodName + @")(\{*)[^}]*(\})");
+
+            if (matchMethodInSource.Success)
+            {
+                string instrumentedMethod = InstrumentMethod(matchMethodInSource.Value);
+                string template = File.ReadAllText(ConfigurationManager.AppSettings["template"]);
+
+                string sourceWithInsertedMethod = Regex.Replace(template, @"(__methodPlacement__)", instrumentedMethod);
+
+                return sourceWithInsertedMethod;
+            }
+
+            return sourceCode;
+        }
+
+        private static string InstrumentMethod(string uninstrumentedMethod)
+        {
+            var tempStr = uninstrumentedMethod.Replace(Environment.NewLine, $"ncount++;");
+            tempStr = Regex.Replace(tempStr, @"(if|for|foreach|while)(\s*)((\()[^)]*(\)))(ncount\+\+;)", "$1$2$3");
+            int idx = tempStr.IndexOf(@"ncount++;");
+            tempStr = (idx < 0) ? tempStr : tempStr.Remove(idx, @"ncount++;".Length);
+            int lastIdx = tempStr.LastIndexOf(@"ncount++;");
+            tempStr = (idx < 0) ? tempStr : tempStr.Remove(lastIdx, @"ncount++;".Length);
+
+            return tempStr;
+        }
+
+        private static string PromoteMethodCall(string codeWithMethodPlaced)
+        {
+            var methodName = ConfigurationManager.AppSettings["methodname"];
+            var requestArgs = File.ReadAllText(ConfigurationManager.AppSettings["request"]);
+            var methodCall = string.Concat("var result = ", methodName, "(", requestArgs, ");");
+
+            string codeWithMethodCallInPlace = Regex.Replace(codeWithMethodPlaced, @"(__methodCall__)", methodCall);
+
+            return codeWithMethodCallInPlace;
+        }
+
+        private static string PromoteAssertion(string codeWithMethodCallInPlace)
+        {
+            var expectedValue = File.ReadAllText(ConfigurationManager.AppSettings["response"]);
+            var assertionParams = File.ReadAllText(ConfigurationManager.AppSettings["assertion"]);
+
+            string[] assertParams = assertionParams.Split(new string[] { "<breakParam>" }, StringSplitOptions.None);
+
+            string type = assertParams[0];
+            var assertionCheck = assertParams[1];
+
+            string assertionStretch = string.Concat(type + " ", "expectedValue = ", expectedValue, ";", Environment.NewLine, assertionCheck);
+
+            string codeWithAssertionInPlace = Regex.Replace(codeWithMethodCallInPlace, @"(__assertion__)", assertionStretch);
+
+            return codeWithAssertionInPlace;
+        }
+
+        private static string PromoteCodeCoverage(string codeWithAssertionInPlace)
+        {
+            var ncountTotal = Regex.Matches(codeWithAssertionInPlace, @"ncount\+\+;").Count;
+
+            string codeCoverageStretch = string.Concat("Console.WriteLine(", "\"Code coverage (%): \" + ", "((ncount/", ncountTotal, ") * 100)", ");");
+
+            string codeWithCodeCoverageInPlace = Regex.Replace(codeWithAssertionInPlace, @"(__codeCoverage__)", codeCoverageStretch);
+
+            return codeWithCodeCoverageInPlace;
+        }
+    }
+}

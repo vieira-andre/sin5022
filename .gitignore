@@ -1,0 +1,10 @@
+[Bb]in/
+[Oo]bj/
+build/
+/.vs/
+*.suo
+*.user
+*.exe
+*.pdb
+[Dd]ebug/
+[Rr]elease/
