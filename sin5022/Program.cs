@@ -26,7 +26,7 @@ namespace sin5022
 
             if (!codeWithMethodInPlace.Item1)
             {
-                Console.WriteLine($"[Error] {codeWithMethodInPlace.Item2}");
+                Console.WriteLine(codeWithMethodInPlace.Item2);
                 Console.ReadKey();
 
                 Environment.Exit(-1);
@@ -74,7 +74,7 @@ namespace sin5022
                 RegexOptions.Singleline);
 
             if (extractedMethodsInSource.Count < 0)
-                return Tuple.Create(false, "No methods were matched in source code.");
+                return Tuple.Create(false, "[Error] No methods were matched in source code.");
 
             string desiredMethodFromSource = null;
 
@@ -94,7 +94,7 @@ namespace sin5022
                 return Tuple.Create(true, sourceWithInsertedMethod);
             }
             else
-                return Tuple.Create(false, "The specified method could not be found.");
+                return Tuple.Create(false, "[Error] The specified method could not be found.");
         }
 
         private static string InstrumentMethod(string uninstrumentedMethod)
