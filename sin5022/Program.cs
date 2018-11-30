@@ -75,7 +75,7 @@ namespace sin5022
 
         private static string InstrumentMethod(string uninstrumentedMethod)
         {
-            var tempStr = uninstrumentedMethod.Replace(Environment.NewLine, $"ncount++;");
+            string tempStr = uninstrumentedMethod.Replace(Environment.NewLine, $"ncount++;");
             tempStr = Regex.Replace(tempStr, @"(if|for|foreach|while)(\s*)((\()[^)]*(\)))(ncount\+\+;)", "$1$2$3");
             int idx = tempStr.IndexOf(@"ncount++;");
             tempStr = (idx < 0) ? tempStr : tempStr.Remove(idx, @"ncount++;".Length);
@@ -116,7 +116,7 @@ namespace sin5022
 
         private static string PromoteCodeCoverage(string codeWithAssertionInPlace)
         {
-            var ncountTotal = Regex.Matches(codeWithAssertionInPlace, @"ncount\+\+;").Count;
+            int ncountTotal = Regex.Matches(codeWithAssertionInPlace, @"ncount\+\+;").Count;
 
             string coverage = $"(Decimal.Divide(ncount, {ncountTotal}) * 100)";
             string codeCoverageStretch = string.Concat("Console.WriteLine(", "\"Code coverage (%): {0:0.0}\", ", coverage, ");");
