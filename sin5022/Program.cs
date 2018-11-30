@@ -117,10 +117,8 @@ namespace sin5022
         {
             var ncountTotal = Regex.Matches(codeWithAssertionInPlace, @"ncount\+\+;").Count;
 
-            string coverage = $"(Decimal.Divide(1, {ncountTotal}) * 100)";
-
+            string coverage = $"(Decimal.Divide(ncount, {ncountTotal}) * 100)";
             string codeCoverageStretch = string.Concat("Console.WriteLine(", "\"Code coverage (%): {0:0.0}\", ", coverage, ");");
-
             string codeWithCodeCoverageInPlace = Regex.Replace(codeWithAssertionInPlace, @"(__codeCoverage__)", codeCoverageStretch);
 
             return codeWithCodeCoverageInPlace;
