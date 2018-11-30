@@ -6,8 +6,16 @@ public class Program {
 
 	public static void Main() {
 		__methodCall__
-		__assertion__
+
+		__expectedResult__
+
+		if (__assertionCheck__)
+			Console.WriteLine("The assertion is TRUE.");
+		else
+			Console.WriteLine("The assertion is FALSE.");
+
 		__codeCoverage__
+
 		Console.ReadKey();
 	}
 

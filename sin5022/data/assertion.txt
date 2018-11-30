@@ -1,1 +1,1 @@
-﻿int<breakParam>if (result == expectedValue) { Console.WriteLine("The assertion is TRUE."); } else { Console.WriteLine("The assertion is FALSE."); }
+﻿int<breakParam>result == expectedValue

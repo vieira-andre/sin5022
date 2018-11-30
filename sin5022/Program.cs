@@ -62,9 +62,9 @@ namespace sin5022
 
             if (matchMethodInSource.Success)
             {
-                string instrumentedMethod = InstrumentMethod(matchMethodInSource.Value);
                 string template = File.ReadAllText(ConfigurationManager.AppSettings["template"]);
 
+                string instrumentedMethod = InstrumentMethod(matchMethodInSource.Value);
                 string sourceWithInsertedMethod = Regex.Replace(template, @"(__methodPlacement__)", instrumentedMethod);
 
                 return sourceWithInsertedMethod;
@@ -106,9 +106,10 @@ namespace sin5022
             string type = assertParams[0];
             var assertionCheck = assertParams[1];
 
-            string assertionStretch = string.Concat(type + " ", "expectedValue = ", expectedValue, ";", Environment.NewLine, assertionCheck);
+            string expectedResult = string.Concat(type + " ", "expectedValue = ", expectedValue, ";");
+            string codeWithExpectedResultInplace = Regex.Replace(codeWithMethodCallInPlace, @"(__expectedResult__)", expectedResult);
 
-            string codeWithAssertionInPlace = Regex.Replace(codeWithMethodCallInPlace, @"(__assertion__)", assertionStretch);
+            string codeWithAssertionInPlace = Regex.Replace(codeWithExpectedResultInplace, @"(__assertionCheck__)", assertionCheck);
 
             return codeWithAssertionInPlace;
         }
