@@ -2,6 +2,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -11,9 +12,9 @@ namespace sin5022
     {
         static void Main(string[] args)
         {
-            var resultPath = ConfigurationManager.AppSettings["path"];
+            var resultPath = ConfigurationManager.AppSettings["resultpath"];
 
-            var csc = new CSharpCodeProvider();
+            var provider = new CSharpCodeProvider();
             var parameters = new CompilerParameters(new[] { "mscorlib.dll", "System.Core.dll" }, resultPath, true)
             {
                 GenerateExecutable = true
@@ -26,25 +27,32 @@ namespace sin5022
             string codeWithAssertionInPlace = PromoteAssertion(codeWithMethodCallInPlace);
             string codeToBeCompiled = PromoteCodeCoverage(codeWithAssertionInPlace);
 
-            CompilerResults cr = csc.CompileAssemblyFromSource(parameters, codeToBeCompiled);
+            CompilerResults cr = provider.CompileAssemblyFromSource(parameters, codeToBeCompiled);
 
             if (cr.Errors.Count > 0)
             {
-                Console.WriteLine("Errors building {0} into {1}",
+                Console.WriteLine("Errors building\n======\n\n{0}\n\n======\ninto\n\n{1}",
                     codeToBeCompiled, cr.PathToAssembly);
                 foreach (CompilerError ce in cr.Errors)
                 {
                     Console.WriteLine("  {0}", ce.ToString());
                     Console.WriteLine();
                 }
+
+                Console.ReadKey();
             }
             else
             {
-                Console.WriteLine("Source {0} built into {1} successfully.",
+                Console.WriteLine("Source\n======\n\n{0}\n\n======\nbuilt into {1} successfully.",
                     codeToBeCompiled, cr.PathToAssembly);
-            }
 
-            Console.ReadKey();
+                Console.ReadKey();
+
+                using (var process = Process.Start(resultPath))
+                {
+                    process.WaitForExit();
+                }
+            }
         }
 
         private static string PromoteMethodPlacement(string sourceCode)
