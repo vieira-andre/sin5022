@@ -22,8 +22,17 @@ namespace sin5022
 
             string sourceCode = File.ReadAllText(ConfigurationManager.AppSettings["sourcecode"]);
 
-            string codeWithMethodInPlace = PromoteMethodPlacement(sourceCode);
-            string codeWithMethodCallInPlace = PromoteMethodCall(codeWithMethodInPlace);
+            Tuple<bool, string> codeWithMethodInPlace = PromoteMethodPlacement(sourceCode);
+
+            if (!codeWithMethodInPlace.Item1)
+            {
+                Console.WriteLine($"[Error] {codeWithMethodInPlace.Item2}");
+                Console.ReadKey();
+
+                Environment.Exit(-1);
+            }
+
+            string codeWithMethodCallInPlace = PromoteMethodCall(codeWithMethodInPlace.Item2);
             string codeWithAssertionInPlace = PromoteAssertion(codeWithMethodCallInPlace);
             string codeToBeCompiled = PromoteCodeCoverage(codeWithAssertionInPlace);
 
@@ -33,6 +42,7 @@ namespace sin5022
             {
                 Console.WriteLine("Errors building\n======\n\n{0}\n\n======\ninto\n\n{1}",
                     codeToBeCompiled, cr.PathToAssembly);
+
                 foreach (CompilerError ce in cr.Errors)
                 {
                     Console.WriteLine("  {0}", ce.ToString());
@@ -55,22 +65,36 @@ namespace sin5022
             }
         }
 
-        private static string PromoteMethodPlacement(string sourceCode)
+        private static Tuple<bool, string> PromoteMethodPlacement(string sourceCode)
         {
             var methodName = ConfigurationManager.AppSettings["methodname"];
-            var matchMethodInSource = Regex.Match(sourceCode, @"(static)(\s)(int|string|double|object)(\s)(" + methodName + @")(\{*)[^}]*(\})");
 
-            if (matchMethodInSource.Success)
+            MatchCollection extractedMethodsInSource = Regex.Matches(sourceCode,
+                @"((?:(?:public|private|protected|static|readonly|abstract)\s+)*)\s*(\w+)\s*(\w+)\(.*?\)\s*({(?:{[^{}]*(?:{[^{}]*}|.)*?[^{}]*}|.)*?})",
+                RegexOptions.Singleline);
+
+            if (extractedMethodsInSource.Count < 0)
+                return Tuple.Create(false, "No methods were matched in source code.");
+
+            string desiredMethodFromSource = null;
+
+            foreach (Match match in extractedMethodsInSource)
+            {
+                if (match.Groups[3].Value.Equals(methodName))
+                    desiredMethodFromSource = match.Value;
+            }
+
+            if (!string.IsNullOrEmpty(desiredMethodFromSource))
             {
                 string template = File.ReadAllText(ConfigurationManager.AppSettings["template"]);
 
-                string instrumentedMethod = InstrumentMethod(matchMethodInSource.Value);
+                string instrumentedMethod = InstrumentMethod(desiredMethodFromSource);
                 string sourceWithInsertedMethod = Regex.Replace(template, @"(__methodPlacement__)", instrumentedMethod);
 
-                return sourceWithInsertedMethod;
+                return Tuple.Create(true, sourceWithInsertedMethod);
             }
-
-            return sourceCode;
+            else
+                return Tuple.Create(false, "The specified method could not be found.");
         }
 
         private static string InstrumentMethod(string uninstrumentedMethod)
