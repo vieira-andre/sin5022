@@ -40,7 +40,8 @@ namespace sin5022
 
             if (cr.Errors.Count > 0)
             {
-                Console.WriteLine("Errors building\n======\n\n{0}\n\n======\ninto\n\n{1}",
+                Console.WriteLine(
+                    string.Concat("Errors building", "\n======\n\n", "{0}", "\n\n======\n", "into", "\n\n", "{1}"),
                     codeToBeCompiled, cr.PathToAssembly);
 
                 foreach (CompilerError ce in cr.Errors)
@@ -53,7 +54,8 @@ namespace sin5022
             }
             else
             {
-                Console.WriteLine("Source\n======\n\n{0}\n\n======\nbuilt into {1} successfully.",
+                Console.WriteLine(
+                    string.Concat("Source", "\n======\n\n", "{0}", "\n\n======\n", "built into ", "{1}", " successfully."),
                     codeToBeCompiled, cr.PathToAssembly);
 
                 Console.ReadKey();
