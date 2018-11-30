@@ -36,35 +36,7 @@ namespace sin5022
             string codeWithAssertionInPlace = PromoteAssertion(codeWithMethodCallInPlace);
             string codeToBeCompiled = PromoteCodeCoverage(codeWithAssertionInPlace);
 
-            CompilerResults cr = provider.CompileAssemblyFromSource(parameters, codeToBeCompiled);
-
-            if (cr.Errors.Count > 0)
-            {
-                Console.WriteLine(
-                    string.Concat("Errors building", "\n======\n\n", "{0}", "\n\n======\n", "into", "\n\n", "{1}"),
-                    codeToBeCompiled, cr.PathToAssembly);
-
-                foreach (CompilerError ce in cr.Errors)
-                {
-                    Console.WriteLine("  {0}", ce.ToString());
-                    Console.WriteLine();
-                }
-
-                Console.ReadKey();
-            }
-            else
-            {
-                Console.WriteLine(
-                    string.Concat("Source", "\n======\n\n", "{0}", "\n\n======\n", "built into ", "{1}", " successfully."),
-                    codeToBeCompiled, cr.PathToAssembly);
-
-                Console.ReadKey();
-
-                using (var process = Process.Start(resultPath))
-                {
-                    process.WaitForExit();
-                }
-            }
+            ProceedToCompile(resultPath, provider, parameters, codeToBeCompiled);
         }
 
         private static Tuple<bool, string> PromoteMethodPlacement(string sourceCode)
@@ -149,6 +121,39 @@ namespace sin5022
             string codeWithCodeCoverageInPlace = Regex.Replace(codeWithAssertionInPlace, @"(__codeCoverage__)", codeCoverageStretch);
 
             return codeWithCodeCoverageInPlace;
+        }
+
+        private static void ProceedToCompile(string resultPath, CSharpCodeProvider provider, CompilerParameters parameters, string codeToBeCompiled)
+        {
+            CompilerResults cr = provider.CompileAssemblyFromSource(parameters, codeToBeCompiled);
+
+            if (cr.Errors.Count > 0)
+            {
+                Console.WriteLine(
+                    string.Concat("Errors building", "\n======\n\n", "{0}", "\n\n======\n", "into", "\n\n", "{1}"),
+                    codeToBeCompiled, cr.PathToAssembly);
+
+                foreach (CompilerError ce in cr.Errors)
+                {
+                    Console.WriteLine("  {0}", ce.ToString());
+                    Console.WriteLine();
+                }
+
+                Console.ReadKey();
+            }
+            else
+            {
+                Console.WriteLine(
+                    string.Concat("Source", "\n======\n\n", "{0}", "\n\n======\n", "built into ", "{1}", " successfully."),
+                    codeToBeCompiled, cr.PathToAssembly);
+
+                Console.ReadKey();
+
+                using (var process = Process.Start(resultPath))
+                {
+                    process.WaitForExit();
+                }
+            }
         }
     }
 }
