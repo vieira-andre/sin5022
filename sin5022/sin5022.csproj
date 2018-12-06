@@ -163,12 +163,6 @@
     <Content Include="data\template.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ForTest\ForTest.csproj">
-      <Project>{abc0f68a-86dc-4748-bc09-4a6aebc3b6d3}</Project>
-      <Name>ForTest</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
