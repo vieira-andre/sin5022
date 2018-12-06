@@ -8,3 +8,8 @@ build/
 *.pdb
 [Dd]ebug/
 [Rr]elease/
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
