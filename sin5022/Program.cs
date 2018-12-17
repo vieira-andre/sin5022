@@ -1,9 +1,12 @@
-﻿using Microsoft.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CSharp;
 using System;
 using System.CodeDom.Compiler;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace sin5022
@@ -43,20 +46,7 @@ namespace sin5022
         {
             var methodName = ConfigurationManager.AppSettings["methodname"];
 
-            MatchCollection extractedMethodsInSource = Regex.Matches(sourceCode,
-                @"((?:(?:public|private|protected|static|readonly|abstract)\s+)*)\s*(\w+)\s*(\w+)\(.*?\)\s*({(?:{[^{}]*(?:{[^{}]*}|.)*?[^{}]*}|.)*?})",
-                RegexOptions.Singleline);
-
-            if (extractedMethodsInSource.Count < 0)
-                return Tuple.Create(false, "[Error] No methods were matched in source code.");
-
-            string desiredMethodFromSource = null;
-
-            foreach (Match match in extractedMethodsInSource)
-            {
-                if (match.Groups[3].Value.Equals(methodName))
-                    desiredMethodFromSource = match.Value;
-            }
+            string desiredMethodFromSource = GetMethod(sourceCode, methodName);
 
             if (!string.IsNullOrEmpty(desiredMethodFromSource))
             {
@@ -69,6 +59,22 @@ namespace sin5022
             }
             else
                 return Tuple.Create(false, "[Error] The specified method could not be found.");
+        }
+
+        private static string GetMethod(string sourceCode, string methodName)
+        {
+            var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+            var root = syntaxTree.GetRoot();
+
+            var method = root.DescendantNodes()
+                             .OfType<MethodDeclarationSyntax>()
+                             .Where(md => md.Identifier.ValueText.Equals(methodName))
+                             .FirstOrDefault();
+
+            if (method == null)
+                return null;
+
+            return method.ToString();
         }
 
         private static string InstrumentMethod(string uninstrumentedMethod)
