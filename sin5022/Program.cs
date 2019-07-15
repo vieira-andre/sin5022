@@ -74,10 +74,7 @@ namespace sin5022
                              .Where(md => md.Identifier.ValueText.Equals(methodName))
                              .FirstOrDefault();
 
-            if (method == null)
-                return null;
-
-            return method.ToString();
+            return method?.ToString();
         }
 
         private static string InstrumentMethod(string uninstrumentedMethod)
@@ -111,7 +108,7 @@ namespace sin5022
             string[] assertParams = assertionParams.Split(new string[] { "<breakParam>" }, StringSplitOptions.None);
 
             string type = assertParams[0];
-            var assertionCheck = assertParams[1];
+            string assertionCheck = assertParams[1];
 
             string expectedResult = string.Concat(type + " ", "expectedValue = ", expectedValue, ";");
             string codeWithExpectedResultInplace = Regex.Replace(codeWithMethodCallInPlace, @"(__expectedResult__)", expectedResult);
