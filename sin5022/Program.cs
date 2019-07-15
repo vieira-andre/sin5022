@@ -31,7 +31,7 @@ namespace sin5022
             if (!codeWithMethodInPlace.Item1)
             {
                 Console.WriteLine(codeWithMethodInPlace.Item2);
-                Console.ReadKey();
+                _ = Console.ReadKey();
 
                 Environment.Exit(-1);
             }
@@ -146,7 +146,7 @@ namespace sin5022
                     Console.WriteLine();
                 }
 
-                Console.ReadKey();
+                _ = Console.ReadKey();
             }
             else
             {
@@ -154,9 +154,9 @@ namespace sin5022
                     string.Concat("Source", "\n======\n\n", "{0}", "\n\n======\n", "built into ", "{1}", " successfully."),
                     codeToBeCompiled, cr.PathToAssembly);
 
-                Console.ReadKey();
+                _ = Console.ReadKey();
 
-                using (var process = Process.Start(resultPath))
+                using (Process process = Process.Start(resultPath))
                 {
                     process.WaitForExit();
                 }
