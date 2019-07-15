@@ -17,13 +17,6 @@ namespace sin5022
         static void Main(string[] args)
         {
             string resultPath = ConfigurationManager.AppSettings["resultpath"];
-
-            var provider = new CSharpCodeProvider();
-            var parameters = new CompilerParameters(new[] { "mscorlib.dll", "System.Core.dll" }, resultPath, true)
-            {
-                GenerateExecutable = true
-            };
-
             string sourceCode = File.ReadAllText(ConfigurationManager.AppSettings["sourcecode"]);
 
             Tuple<bool, string> codeWithMethodInPlace = PromoteMethodPlacement(sourceCode);
@@ -39,6 +32,13 @@ namespace sin5022
             string codeWithMethodCallInPlace = PromoteMethodCall(codeWithMethodInPlace.Item2);
             string codeWithAssertionInPlace = PromoteAssertion(codeWithMethodCallInPlace);
             string codeToBeCompiled = PromoteCodeCoverage(codeWithAssertionInPlace);
+
+            var provider = new CSharpCodeProvider();
+
+            var parameters = new CompilerParameters(new[] { "mscorlib.dll", "System.Core.dll" }, resultPath, true)
+            {
+                GenerateExecutable = true
+            };
 
             ProceedToCompile(resultPath, provider, parameters, codeToBeCompiled);
         }
