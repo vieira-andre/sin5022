@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CSharp;
 using System;
@@ -15,7 +16,7 @@ namespace sin5022
     {
         static void Main(string[] args)
         {
-            var resultPath = ConfigurationManager.AppSettings["resultpath"];
+            string resultPath = ConfigurationManager.AppSettings["resultpath"];
 
             var provider = new CSharpCodeProvider();
             var parameters = new CompilerParameters(new[] { "mscorlib.dll", "System.Core.dll" }, resultPath, true)
@@ -44,7 +45,7 @@ namespace sin5022
 
         private static Tuple<bool, string> PromoteMethodPlacement(string sourceCode)
         {
-            var methodName = ConfigurationManager.AppSettings["methodname"];
+            string methodName = ConfigurationManager.AppSettings["methodname"];
 
             string desiredMethodFromSource = GetMethod(sourceCode, methodName);
 
@@ -63,10 +64,10 @@ namespace sin5022
 
         private static string GetMethod(string sourceCode, string methodName)
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
-            var root = syntaxTree.GetRoot();
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode);
+            SyntaxNode root = syntaxTree.GetRoot();
 
-            var method = root.DescendantNodes()
+            MethodDeclarationSyntax method = root.DescendantNodes()
                              .OfType<MethodDeclarationSyntax>()
                              .Where(md => md.Identifier.ValueText.Equals(methodName))
                              .FirstOrDefault();
@@ -91,9 +92,9 @@ namespace sin5022
 
         private static string PromoteMethodCall(string codeWithMethodPlaced)
         {
-            var methodName = ConfigurationManager.AppSettings["methodname"];
-            var requestArgs = File.ReadAllText(ConfigurationManager.AppSettings["request"]);
-            var methodCall = string.Concat("var result = ", methodName, "(", requestArgs, ");");
+            string methodName = ConfigurationManager.AppSettings["methodname"];
+            string requestArgs = File.ReadAllText(ConfigurationManager.AppSettings["request"]);
+            string methodCall = string.Concat("var result = ", methodName, "(", requestArgs, ");");
 
             string codeWithMethodCallInPlace = Regex.Replace(codeWithMethodPlaced, @"(__methodCall__)", methodCall);
 
@@ -102,8 +103,8 @@ namespace sin5022
 
         private static string PromoteAssertion(string codeWithMethodCallInPlace)
         {
-            var expectedValue = File.ReadAllText(ConfigurationManager.AppSettings["response"]);
-            var assertionParams = File.ReadAllText(ConfigurationManager.AppSettings["assertion"]);
+            string expectedValue = File.ReadAllText(ConfigurationManager.AppSettings["response"]);
+            string assertionParams = File.ReadAllText(ConfigurationManager.AppSettings["assertion"]);
 
             string[] assertParams = assertionParams.Split(new string[] { "<breakParam>" }, StringSplitOptions.None);
 
