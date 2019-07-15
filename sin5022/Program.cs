@@ -17,6 +17,8 @@ namespace sin5022
         static void Main(string[] args)
         {
             string resultPath = ConfigurationManager.AppSettings["resultpath"];
+            _ = Directory.CreateDirectory(Path.GetDirectoryName(resultPath));
+
             string sourceCode = File.ReadAllText(ConfigurationManager.AppSettings["sourcecode"]);
 
             Tuple<bool, string> codeWithMethodInPlace = PromoteMethodPlacement(sourceCode);
